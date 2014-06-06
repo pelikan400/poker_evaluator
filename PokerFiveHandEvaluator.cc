@@ -32,7 +32,7 @@ Card::Card()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-Card::Card( const std::string& x )
+Card::Card( const std::string&  )
 {
 }
 
@@ -198,7 +198,7 @@ Card& CardDeck::lockCard( const unsigned int cardIndex )
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-Card& CardDeck::lockCard( const std::string& cardAsString )
+Card& CardDeck::lockCard( const std::string&  )
 {
   // TODO: scratch this dummy and implement it right
   return dealCard( 0 );
@@ -333,7 +333,7 @@ unsigned int PokerFiveHandEvaluator::evaluateOmahaHand( const Hand& holeCards, c
   return evaluateHandWithCommonCards( permutationOmaha, holeCards, commonCards );
 }
 
-#define MAX_MONTE_CARLO_SIMULATIONS  10000
+#define MAX_MONTE_CARLO_SIMULATIONS  100000
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
@@ -342,25 +342,39 @@ float playHoldemWithFixedHoleCards( std::shared_ptr< PokerFiveHandEvaluator > ev
 				    std::shared_ptr< Hand > holeCards, 
 				    int numberOfOpponents )
 {
-  unsigned int looseCounter = 0;
-
-  for( int i = 0; i < MAX_MONTE_CARLO_SIMULATIONS; ++i ) {
-    Hand commonCards = { deck->dealCard(), deck->dealCard(), deck->dealCard(), deck->dealCard(), deck->dealCard() };
-    unsigned int handValue = evaluator->evaluateHoldemHand( *holeCards, commonCards );
-    for( int j = 0; j < numberOfOpponents; ++j ) {
-      Hand opponentHoleCards = { deck->dealCard(), deck->dealCard() };
-      unsigned int opponentHandValue = evaluator->evaluateHoldemHand( opponentHoleCards, commonCards );
-      if( handValue > opponentHandValue ) {
-	++looseCounter;
-	break;
+   unsigned int looseCounter = 0;
+   
+   for( int i = 0; i < MAX_MONTE_CARLO_SIMULATIONS; ++i ) {
+      Hand commonCards = { deck->dealCard(), deck->dealCard(), deck->dealCard(), deck->dealCard(), deck->dealCard() };
+      unsigned int handValue = evaluator->evaluateHoldemHand( *holeCards, commonCards );
+      for( int j = 0; j < numberOfOpponents; ++j ) {
+         Hand opponentHoleCards = { deck->dealCard(), deck->dealCard() };
+         unsigned int opponentHandValue = evaluator->evaluateHoldemHand( opponentHoleCards, commonCards );
+         if( handValue > opponentHandValue ) {
+            ++looseCounter;
+            break;
+         }
       }
-    }
+      
+      deck->clean();
+   }
+   
+   
+   return 1.0 - (float) looseCounter / (float) MAX_MONTE_CARLO_SIMULATIONS;
+}
 
-    deck->clean();
-  }
+//////////////////////////////////////////////////////////////////////////////////////////
 
-  
-  return 1.0 - (float) looseCounter / (float) MAX_MONTE_CARLO_SIMULATIONS;
+template< class T >
+std::vector< T > solveAllFutures( std::vector< std::future< T > >& futures ) 
+{
+   std::vector< T > resolvedValues; 
+   for( auto& f : futures ) {
+      T x = f.get();
+      resolvedValues.push_back( x );
+   }
+
+   return resolvedValues;
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
@@ -370,25 +384,30 @@ void playHoldem( int numberOfOpponents )
    std::shared_ptr< PokerFiveHandEvaluator > evaluator( new PokerFiveHandEvaluator() );
 
    for( int i = 0; i < 13; ++i ) {
-      for( int j = 0; j < 13; ++j ) {
+      std::vector< std::shared_ptr< Hand > > hands;
+      std::vector< float > winningProbabilities;
+      std::vector< std::future< float > > futureWinningProbabilities;
+      for( int j = i; j < 13; ++j ) {
          if( i != j ) {
             std::shared_ptr< CardDeck > deck( new CardDeck() );
             std::shared_ptr< Hand > h( new Hand( { deck->lockCard( i * 4 ), deck->lockCard( j * 4 ) } ) );
-            std::future< float > winningProbabilityFuture = std::async( playHoldemWithFixedHoleCards, evaluator, deck, h, numberOfOpponents );
-            // float winningProbability = winningProbabilityFuture.get();
-            // float winningProbability = playHoldemWithFixedHoleCards( evaluator, deck, h, numberOfOpponents );
-            // std::cout << h->toString() << "   suited " << winningProbability * 100 << "%" << std::endl;
-            deck->cleanAll();
+            hands.push_back( h );
+            futureWinningProbabilities.push_back( std::async( std::launch::async, playHoldemWithFixedHoleCards, evaluator, deck, h, numberOfOpponents ) );
          }
          
          {
             std::shared_ptr< CardDeck > deck( new CardDeck() );
             std::shared_ptr< Hand > h( new Hand( { deck->lockCard( i * 4 ), deck->lockCard( j * 4 + 1 ) } ) );
-            // float winningProbability = std::async( playHoldemWithFixedHoleCards, evaluator, deck, h, numberOfOpponents ).get();
-            // float winningProbability = playHoldemWithFixedHoleCards( evaluator, deck, h, numberOfOpponents );
-            // std::cout << h->toString() << ( i == j ? "   Pair   " : " unsuited " ) << winningProbability * 100 << "%" << std::endl;
-            deck->cleanAll();
+            hands.push_back( h );
+            futureWinningProbabilities.push_back( std::async( std::launch::async, playHoldemWithFixedHoleCards, evaluator, deck, h, numberOfOpponents ) );
          }
+      }
+
+      winningProbabilities = solveAllFutures( futureWinningProbabilities );
+      std::vector< std::shared_ptr< Hand > >::const_iterator handIterator = hands.begin();
+      for( auto&  winningProbability : winningProbabilities ) {
+         std::cout << (*handIterator)->toString() << winningProbability * 100 << "%" << std::endl;
+         ++handIterator;
       }
    }
 }
@@ -422,7 +441,7 @@ int testCardDeck()
 int  main()
 {
   try {
-    playHoldem( 9 );
+    playHoldem( 7 );
 
     // PokerFiveHandEvaluator evaluator;
     // 
