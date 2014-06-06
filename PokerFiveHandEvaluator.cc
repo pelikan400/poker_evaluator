@@ -22,6 +22,7 @@
 #include <chrono>
 #include <stdexcept>
 #include <future>
+#include <memory>
 
 #include "PokerFiveHandEvaluator.h"
 
@@ -336,26 +337,26 @@ unsigned int PokerFiveHandEvaluator::evaluateOmahaHand( const Hand& holeCards, c
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-float playHoldemWithFixedHoleCards( const PokerFiveHandEvaluator& evaluator, 
-				    CardDeck& deck, 
-				    const Hand& holeCards, 
+float playHoldemWithFixedHoleCards( std::shared_ptr< PokerFiveHandEvaluator > evaluator, 
+				    std::shared_ptr< CardDeck > deck,
+				    std::shared_ptr< Hand > holeCards, 
 				    int numberOfOpponents )
 {
   unsigned int looseCounter = 0;
 
   for( int i = 0; i < MAX_MONTE_CARLO_SIMULATIONS; ++i ) {
-    Hand commonCards = { deck.dealCard(), deck.dealCard(), deck.dealCard(), deck.dealCard(), deck.dealCard() };
-    unsigned int handValue = evaluator.evaluateHoldemHand( holeCards, commonCards );
+    Hand commonCards = { deck->dealCard(), deck->dealCard(), deck->dealCard(), deck->dealCard(), deck->dealCard() };
+    unsigned int handValue = evaluator->evaluateHoldemHand( *holeCards, commonCards );
     for( int j = 0; j < numberOfOpponents; ++j ) {
-      Hand opponentHoleCards = { deck.dealCard(), deck.dealCard() };
-      unsigned int opponentHandValue = evaluator.evaluateHoldemHand( opponentHoleCards, commonCards );
+      Hand opponentHoleCards = { deck->dealCard(), deck->dealCard() };
+      unsigned int opponentHandValue = evaluator->evaluateHoldemHand( opponentHoleCards, commonCards );
       if( handValue > opponentHandValue ) {
 	++looseCounter;
 	break;
       }
     }
 
-    deck.clean();
+    deck->clean();
   }
 
   
@@ -366,49 +367,53 @@ float playHoldemWithFixedHoleCards( const PokerFiveHandEvaluator& evaluator,
 
 void playHoldem( int numberOfOpponents )
 {
-  PokerFiveHandEvaluator evaluator;
-  CardDeck deck;
+   std::shared_ptr< PokerFiveHandEvaluator > evaluator( new PokerFiveHandEvaluator() );
 
-  for( int i = 0; i < 13; ++i ) {
-    for( int j = 0; j < 13; ++j ) {
-      if( i != j ) {
-	Hand h = { deck.lockCard( i * 4 ), deck.lockCard( j * 4 ) };
-	float winningProbability = std::async( playHoldemWithFixedHoleCards, evaluator, deck, h, numberOfOpponents ).get();
-	std::cout << h.toString() << "   suited " << winningProbability * 100 << "%" << std::endl;
-	deck.cleanAll();
+   for( int i = 0; i < 13; ++i ) {
+      for( int j = 0; j < 13; ++j ) {
+         if( i != j ) {
+            std::shared_ptr< CardDeck > deck( new CardDeck() );
+            std::shared_ptr< Hand > h( new Hand( { deck->lockCard( i * 4 ), deck->lockCard( j * 4 ) } ) );
+            std::future< float > winningProbabilityFuture = std::async( playHoldemWithFixedHoleCards, evaluator, deck, h, numberOfOpponents );
+            // float winningProbability = winningProbabilityFuture.get();
+            // float winningProbability = playHoldemWithFixedHoleCards( evaluator, deck, h, numberOfOpponents );
+            // std::cout << h->toString() << "   suited " << winningProbability * 100 << "%" << std::endl;
+            deck->cleanAll();
+         }
+         
+         {
+            std::shared_ptr< CardDeck > deck( new CardDeck() );
+            std::shared_ptr< Hand > h( new Hand( { deck->lockCard( i * 4 ), deck->lockCard( j * 4 + 1 ) } ) );
+            // float winningProbability = std::async( playHoldemWithFixedHoleCards, evaluator, deck, h, numberOfOpponents ).get();
+            // float winningProbability = playHoldemWithFixedHoleCards( evaluator, deck, h, numberOfOpponents );
+            // std::cout << h->toString() << ( i == j ? "   Pair   " : " unsuited " ) << winningProbability * 100 << "%" << std::endl;
+            deck->cleanAll();
+         }
       }
-
-      {
-	Hand h = { deck.lockCard( i * 4 ), deck.lockCard( j * 4  + 1 ) };
-	float winningProbability = std::async( playHoldemWithFixedHoleCards, evaluator, deck, h, numberOfOpponents ).get();
-	std::cout << h.toString() << ( i == j ? "   Pair   " : " unsuited " ) << winningProbability * 100 << "%" << std::endl;
-	deck.cleanAll();
-      }
-    }
-  }
+   }
 }
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
 int testCardDeck()
 {
-  PokerFiveHandEvaluator evaluator;
-  CardDeck deck;
- 
-  for( int deckCounter = 0; deckCounter < 50000; ++deckCounter ) {
-    deck.cleanAll();
-    Hand h1 = { deck.dealCard(), deck.dealCard(), deck.dealCard(), deck.dealCard(), deck.dealCard() };
-    Hand h2 = { deck.dealCard(), deck.dealCard(), deck.dealCard(), deck.dealCard(), deck.dealCard() };
-    auto x1 = evaluator.evaluate( h1 );
-    auto x2 = evaluator.evaluate( h2 );
-    std::cout << h1.toString() ; 
-    std::cout << " :  " << evaluator.evaluateToString( h1 ) << std::endl;
-    std::cout << h2.toString() ; 
-    std::cout << " :  " << evaluator.evaluateToString( h2 ) << std::endl;
-    std::cout << ( x1 == x2 ? "Tie: both hands win" : x1 < x2 ? "First hand wins" : "Second hand wins" )  << std::endl << std::endl;
-  } 
-
-  return 0;
+   PokerFiveHandEvaluator evaluator;
+   CardDeck deck;
+   
+   for( int deckCounter = 0; deckCounter < 50000; ++deckCounter ) {
+      deck.cleanAll();
+      Hand h1 = { deck.dealCard(), deck.dealCard(), deck.dealCard(), deck.dealCard(), deck.dealCard() };
+      Hand h2 = { deck.dealCard(), deck.dealCard(), deck.dealCard(), deck.dealCard(), deck.dealCard() };
+      auto x1 = evaluator.evaluate( h1 );
+      auto x2 = evaluator.evaluate( h2 );
+      std::cout << h1.toString() ; 
+      std::cout << " :  " << evaluator.evaluateToString( h1 ) << std::endl;
+      std::cout << h2.toString() ; 
+      std::cout << " :  " << evaluator.evaluateToString( h2 ) << std::endl;
+      std::cout << ( x1 == x2 ? "Tie: both hands win" : x1 < x2 ? "First hand wins" : "Second hand wins" )  << std::endl << std::endl;
+   } 
+   
+   return 0;
 }
 
 
