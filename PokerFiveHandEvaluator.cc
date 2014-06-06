@@ -23,6 +23,8 @@
 #include <stdexcept>
 #include <future>
 #include <memory>
+#include <map>
+#include <unistd.h>
 
 #include "PokerFiveHandEvaluator.h"
 
@@ -435,10 +437,19 @@ int testCardDeck()
    return 0;
 }
 
+//////////////////////////////////////////////////////////////////////////////////////////
+
+namespace {
+   std::map< std::string, std::string > getCommandLineOptions( int argc, char * argv[] ) 
+   {
+      std::map< std::string, std::string > optionsMap;
+      return optionsMap;
+   }
+}
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-int  main()
+int  main( int argc, char * argv[] )
 {
   try {
     playHoldem( 7 );
