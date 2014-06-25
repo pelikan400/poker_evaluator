@@ -59,7 +59,6 @@ public:
    Card();
    Card( unsigned int index );
    Card( CardRank rank, CardSuit suit );
-   Card( const std::string& x );
 
    inline unsigned int raw() const { return raw_; }
    inline unsigned int index() const { return index_; }
@@ -93,7 +92,8 @@ class CardDeck {
 private:
    bool dealedCards_[ CARDS_IN_DECK ];
    bool lockedCards_[ CARDS_IN_DECK ];
-   Card cardDeck_[ CARDS_IN_DECK ];
+   static Card cardDeck_[ CARDS_IN_DECK ];
+   static bool cardsInitialized_;
 
    std::mt19937 generator_;
    std::uniform_int_distribution< unsigned int> distribution_;
@@ -107,10 +107,10 @@ public:
    void clean();
    void cleanAll();
 
-   Card& dealCard();
-   Card& dealCard( const unsigned int cardIndex );
-   Card& lockCard( const unsigned int cardIndex );
-   Card& lockCard( const std::string& cardAsString );
+   const Card& dealCard();
+   const Card& dealCard( const unsigned int cardIndex );
+   const Card& lockCard( const unsigned int cardIndex );
+   const Card& lockCard( const std::string& cardAsString );
 };
 
 

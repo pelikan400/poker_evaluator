@@ -34,12 +34,6 @@ Card::Card()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-Card::Card( const std::string&  )
-{
-}
-
-//////////////////////////////////////////////////////////////////////////////////////////
-
 Card::Card( unsigned int index )
 {
    index_ = index;
@@ -123,11 +117,20 @@ void CardDeck::generateCardsForDeck()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
+Card CardDeck::cardDeck_[ CARDS_IN_DECK ];
+bool CardDeck::cardsInitialized_ = false;
+
+//////////////////////////////////////////////////////////////////////////////////////////
+
 CardDeck::CardDeck()
   : generator_( std::chrono::system_clock::now().time_since_epoch().count() ),
     distribution_( 0, CARDS_IN_DECK - 1 )
 {
-  generateCardsForDeck();
+  if( !cardsInitialized_ ) {
+    generateCardsForDeck();
+    cardsInitialized_ = true;
+  }
+
   cleanAll();
 }
 
@@ -152,7 +155,7 @@ void CardDeck::cleanAll()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-Card& CardDeck::dealCard( const unsigned int cardIndex )
+const Card& CardDeck::dealCard( const unsigned int cardIndex )
 {
   if( dealedCards_[ cardIndex ] ) {
     throw std::logic_error( "Card was allready dealed." );
@@ -163,7 +166,7 @@ Card& CardDeck::dealCard( const unsigned int cardIndex )
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-Card& CardDeck::dealCard()
+const Card& CardDeck::dealCard()
 {
   unsigned int cardIndex = randomCardIndex();
   int watchdogCounter = 0;
@@ -192,7 +195,7 @@ Card& CardDeck::dealCard()
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-Card& CardDeck::lockCard( const unsigned int cardIndex )
+const Card& CardDeck::lockCard( const unsigned int cardIndex )
 {
   lockedCards_[ cardIndex ] = true;
   return dealCard( cardIndex );
@@ -200,7 +203,7 @@ Card& CardDeck::lockCard( const unsigned int cardIndex )
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-Card& CardDeck::lockCard( const std::string&  )
+const Card& CardDeck::lockCard( const std::string&  )
 {
   // TODO: scratch this dummy and implement it right
   return dealCard( 0 );
@@ -452,7 +455,7 @@ namespace {
 int  main( int argc, char * argv[] )
 {
   try {
-    playHoldem( 7 );
+    playHoldem( 9 );
 
     // PokerFiveHandEvaluator evaluator;
     // 
