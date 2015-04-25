@@ -2,8 +2,8 @@
 #
 #
 
-sourceFiles = PokerFiveHandEvaluatorArrays.cc PokerFiveHandEvaluator.cc
-headerFiles = PokerFiveHandEvaluator.h
+sourceFiles = CardDeck.cc FiveCardEvaluatorArrays.cc FiveCardEvaluator.cc Main.cc
+headerFiles = FiveCardEvaluator.h CardDeck.h Main.h
 OS_SYSTEM = $(shell uname)
 
 ifeq "$(OS_SYSTEM)" "Linux"
@@ -15,5 +15,5 @@ else
 endif
 
 pokerEvaluator: $(sourceFiles) $(headerFiles)
-	$(CC) $(CC_OPTS) PokerFiveHandEvaluator.cc PokerFiveHandEvaluatorArrays.cc
+	$(CC) $(CC_OPTS) $(sourceFiles)
 

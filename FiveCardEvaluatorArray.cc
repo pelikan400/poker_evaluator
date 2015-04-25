@@ -1,7 +1,7 @@
 
-#include "PokerFiveHandEvaluator.h"
+#include "FiveCardEvaluator.h"
 
-PermutationMatrix PokerFiveHandEvaluator::permutationOmaha = {
+PermutationMatrix FiveCardEvaluator::permutationOmaha = {
   { { 0, 1 }, { 0, 1, 2 } },
   { { 0, 1 }, { 0, 1, 3 } },
   { { 0, 1 }, { 0, 1, 4 } },
@@ -70,7 +70,7 @@ PermutationMatrix PokerFiveHandEvaluator::permutationOmaha = {
 };
 
 
-PermutationMatrix PokerFiveHandEvaluator::permutationHoldem = {
+PermutationMatrix FiveCardEvaluator::permutationHoldem = {
   { { 0, 1 }, { 0, 1, 2 } },
   { { 0, 1 }, { 0, 1, 3 } },
   { { 0, 1 }, { 0, 1, 4 } },
@@ -103,12 +103,12 @@ std::string Card::ranksAsString[] = { "2", "3", "4", "5", "6", "7", "8", "9", "T
 
 std::string Card::suitesAsString[] = { "c", "d", "h", "s" };
 
-std::string PokerFiveHandEvaluator::ranksAsString[] = { "High Card", "One Pair", "Two Pairs", "Set", "Straight", "Flush", "Full House", "Four Of a Kind", "Straight Flush" };
+std::string FiveCardEvaluator::ranksAsString[] = { "High Card", "One Pair", "Two Pairs", "Set", "Straight", "Flush", "Full House", "Four Of a Kind", "Straight Flush" };
 
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-unsigned short PokerFiveHandEvaluator::hash_adjust[] = 
+unsigned short FiveCardEvaluator::hash_adjust[] = 
 {
     0, 5628, 7017, 1298, 2918, 2442, 8070, 6383, 6383, 7425, 2442, 5628, 8044, 7425, 3155, 6383, 
     2918, 7452, 1533, 6849, 5586, 7452, 7452, 1533, 2209, 6029, 2794, 3509, 7992, 7733, 7452, 131, 
@@ -146,7 +146,7 @@ unsigned short PokerFiveHandEvaluator::hash_adjust[] =
 
 //////////////////////////////////////////////////////////////////////////////////////////
 
-unsigned short PokerFiveHandEvaluator::hash_values[] =
+unsigned short FiveCardEvaluator::hash_values[] =
 {
      148, 2934,  166, 5107, 4628,  166,  166,  166,  166, 3033,  166, 4692,  166, 5571, 2225,  166, 
     5340, 3423,  166, 3191, 1752,  166, 5212,  166,  166, 3520,  166,  166,  166, 1867,  166, 3313, 
@@ -662,7 +662,7 @@ unsigned short PokerFiveHandEvaluator::hash_values[] =
      166, 5438, 2627, 2266, 2320,  166, 2588, 4790, 4290,  166, 4767, 5829, 2925, 5916, 2133,  166
 };
 
-unsigned short PokerFiveHandEvaluator::flushes[] = {
+unsigned short FiveCardEvaluator::flushes[] = {
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 0, 0, 0, 0, 0, 0, 0, 0, 0, 9, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 0, 0, 0, 1599, 0, 0, 0, 0, 0, 0, 0, 1598, 0, 0, 0, 1597, 0, 1596,
@@ -1086,7 +1086,7 @@ unsigned short PokerFiveHandEvaluator::flushes[] = {
 ** of five unique ranks (i.e.  either Straights or High Card
 ** hands).  it's similar to the above "flushes" array.
 */
-unsigned short PokerFiveHandEvaluator::unique5[] = {
+unsigned short FiveCardEvaluator::unique5[] = {
 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 0, 0, 0, 0, 0, 0, 0, 0, 0, 1608, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,
 0, 0, 0, 0, 7462, 0, 0, 0, 0, 0, 0, 0, 7461, 0, 0,  0,  7460,  0,
