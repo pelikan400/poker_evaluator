@@ -138,7 +138,8 @@ unsigned int FiveCardEvaluator::evaluateHandWithCommonCards( const PermutationMa
   }
 
   // std::cout << holeCards.toString() << " " << commonCards.toString();
-  // std::cout << " :  " << evaluateToString( bestValue ) << std::endl;
+  // std::cout << " :  " << evaluateToString( bestValue ) << " ";
+  // std::cout << " :  " << bestValue << std::endl;
   
   return bestValue;
 }
