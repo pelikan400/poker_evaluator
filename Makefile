@@ -3,8 +3,14 @@
 #
 
 sourceDirectory = src
-sourceFiles = $(sourceDirectory)/CardDeck.cc $(sourceDirectory)/FiveCardEvaluatorArrays.cc $(sourceDirectory)/FiveCardEvaluator.cc $(sourceDirectory)/Main.cc
-headerFiles = $(sourceDirectory)/FiveCardEvaluator.h $(sourceDirectory)/CardDeck.h $(sourceDirectory)/Main.h
+
+sourceFiles = $(sourceDirectory)/CardDeck.cc $(sourceDirectory)/FiveCardEvaluatorArrays.cc \
+   $(sourceDirectory)/FiveCardEvaluator.cc $(sourceDirectory)/Main.cc \
+   $(sourceDirectory)/WorkerThread.cc
+
+headerFiles = $(sourceDirectory)/FiveCardEvaluator.h $(sourceDirectory)/CardDeck.h \
+   $(sourceDirectory)/Main.h
+
 OS_SYSTEM = $(shell uname)
 
 ifeq "$(OS_SYSTEM)" "Linux"
